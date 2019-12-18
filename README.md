@@ -43,7 +43,9 @@ edit `node_modules/ember-cli/lib/cli/index.js`
 
 run `ember s`
 
-visit: `http://localhost:4400/?c="ember g component foo-bar"`
+visit: `http://localhost:4400/` 
+
+type: `ember g component foo-bar` + Enter
 
 
 check files!

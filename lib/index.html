@@ -1,0 +1,60 @@
+<!doctype html>
+  <html>
+    <head>
+      <link rel="stylesheet" href="/xterm.css" />
+      <script src="/xterm.js"></script>
+    </head>
+    <body>
+        <style>
+            body {
+                overflow: hidden;
+                background-color: #000;
+                margin: 20px;
+            }
+        </style>
+      <div id="terminal"></div>
+      <script>
+        var term = new Terminal();
+        term.open(document.getElementById('terminal'));
+        term.write('ember-cli: ');
+        let cmd = '';
+        term.prompt = async () => {
+            await postData('/', cmd.replace('ember ','').trim().split(' ').map(e=>e.trim()).filter(e=>e.length));
+            term.write('\r\nember-cli: ');
+            cmd = '';
+        };
+        term.onKey((e) => {
+            const ev = e.domEvent;
+            const printable = !ev.altKey && !ev.ctrlKey && !ev.metaKey;
+
+            if (ev.keyCode === 13) {
+                term.prompt();
+            } else if (ev.keyCode === 8) {
+            // Do not delete the prompt
+                if (term._core.buffer.x > 2) {
+                    term.write('\b \b');
+                    cmd = cmd.slice(0,-1);
+                }
+            } else if (printable) {
+                term.write(e.key);
+                cmd = `${cmd}${e.key}`;
+            }
+        });
+
+
+
+
+        function postData(url = '/', data = {}) {
+  // Значения по умолчанию обозначены знаком *
+    return fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json;charset=utf-8'
+        },
+        body: JSON.stringify({data}), // тип данных в body должен соответвовать значению заголовка "Content-Type"
+    })
+    .then(response => response.json()); // парсит JSON ответ в Javascript объект
+}
+      </script>
+    </body>
+  </html>

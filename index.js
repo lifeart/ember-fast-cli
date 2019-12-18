@@ -7,12 +7,14 @@ let cli = null;
 // cli.env = environment;
 
 const lookupCommand = require('ember-cli/lib/cli/lookup-command');
-
+const path = require('path');
 async function executeCommand(cli, commandName, commandArgs) {
-  let t = Date.now();
-  const command = makeCommand(cli, commandName, commandArgs);
-  await runCommand(command, commandArgs);
-  console.log('done: ' + '" '+[commandName, ...commandArgs].join(' ')+' "' + ' in ' + ((Date.now() - t)/1000) + 's');
+  try {
+    const command = makeCommand(cli, commandName, commandArgs);
+    await runCommand(command, commandArgs);
+  } catch(e) {
+    console.log(e, e);
+  }
 }
 async function runCommand(command, commandArgs) {
   try {
@@ -53,19 +55,29 @@ function makeCommand(cli, commandName, commandArgs) {
   return command;
 }
 
+const xtermPath = path.dirname(path.dirname(require.resolve('xterm')));
+const port = 4400;
 function startServer() {
   var express = require('express');
+  var serveStatic = require('serve-static')
+
   var app = express();
-  
-  app.get('/', function (req, res) {
-    const [command, ...commandArgs] = req.query.c.replace(/"/gi,'').replace('ember ','').trim().split(' ').map(e=>e.trim()).filter(e=>e.length);
+
+
+  app.use(express.json());
+  app.use(serveStatic(path.join(xtermPath, 'lib')));
+  app.use(serveStatic(path.join(xtermPath, 'css')));
+  app.use(serveStatic(path.join(__dirname, 'lib'), { 'index': ['index.html'] }));
+
+  app.post('/', function (req, res) {
+    const [command, ...commandArgs] = req.body.data;
     executeCommand(cli, command, commandArgs).then(()=>{
-      res.send([command, ...commandArgs].join(' '));
+      res.json([command, ...commandArgs]);
     })
   });
   
-  app.listen(4400, function () {
-    console.log('Example app listening on port 3000!');
+  app.listen(port, function () {
+    console.log(`Example app listening on port ${port}!`);
   });
 }
 
