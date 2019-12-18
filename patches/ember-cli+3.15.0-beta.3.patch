@@ -1,0 +1,11 @@
+diff --git a/node_modules/ember-cli/lib/cli/index.js b/node_modules/ember-cli/lib/cli/index.js
+index a0c3030..7bb3a42 100644
+--- a/node_modules/ember-cli/lib/cli/index.js
++++ b/node_modules/ember-cli/lib/cli/index.js
+@@ -143,5 +143,6 @@ module.exports = function(options) {
+     settings: merge(defaultUpdateCheckerOptions, config.getAll()),
+   };
+ 
++  cli.env = environment;
+   return cli.run(environment).finally(() => willInterruptProcess.release());
+ };

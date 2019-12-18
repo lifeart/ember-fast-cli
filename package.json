@@ -18,12 +18,14 @@
     "lint:js": "eslint .",
     "start": "ember serve",
     "test": "ember test",
-    "test:all": "ember try:each"
+    "test:all": "ember try:each",
+    "postinstall": "patch-package"
   },
   "dependencies": {
     "ember-cli-babel": "^7.11.1",
     "ember-cli-htmlbars": "^4.0.5",
     "express": "^4.17.1",
+    "patch-package": "^6.2.0",
     "serve-static": "^1.14.1",
     "xterm": "^4.3.0"
   },
