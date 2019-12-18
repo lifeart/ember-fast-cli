@@ -25,22 +25,6 @@ Usage
 
 install addon into your porject.
 
-edit `node_modules/ember-cli/lib/cli/index.js`
-
-```js
-  let environment = {
-    tasks: loadTasks(),
-    cliArgs: options.cliArgs,
-    commands: loadCommands(),
-    project,
-    settings: merge(defaultUpdateCheckerOptions, config.getAll()),
-  };
-
-  cli.env = environment; // <-- we need this line
-
-  return cli.run(environment).finally(() => willInterruptProcess.release());
-```
-
 run `ember s`
 
 visit: `http://localhost:4400/` 
