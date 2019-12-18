@@ -1,7 +1,7 @@
 ember-fast-cli
 ==============================================================================
 
-[Short description of the addon.]
+This addon allow execute cli commands on running ember-cli.
 
 
 Compatibility
@@ -23,8 +23,30 @@ ember install ember-fast-cli
 Usage
 ------------------------------------------------------------------------------
 
-[Longer description of how to use the addon in apps.]
+install addon into your porject.
 
+edit `node_modules/ember-cli/lib/cli/index.js`
+
+```js
+  let environment = {
+    tasks: loadTasks(),
+    cliArgs: options.cliArgs,
+    commands: loadCommands(),
+    project,
+    settings: merge(defaultUpdateCheckerOptions, config.getAll()),
+  };
+
+  cli.env = environment; // <-- we need this line
+
+  return cli.run(environment).finally(() => willInterruptProcess.release());
+```
+
+run `ember s`
+
+visit: `http://localhost:4400/?c="ember g component foo-bar"`
+
+
+check files!
 
 Contributing
 ------------------------------------------------------------------------------
