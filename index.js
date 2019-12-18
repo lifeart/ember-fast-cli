@@ -76,7 +76,6 @@ module.exports = {
     if (cli) {
       return;
     }
-    debugger;
     cli = this.parent.cli;
     startServer();
   }
