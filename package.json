@@ -3,9 +3,12 @@
   "version": "0.0.3",
   "description": "Super fast web-cli for ember-cli",
   "keywords": [
-    "ember-addon"
+    "ember-addon", "ember-cli", "cli"
   ],
-  "repository": "",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lifeart/ember-fast-cli.git"
+  },
   "license": "MIT",
   "author": "Aleksandr Kanunnikov <lifeart92@gmail.com>",
   "directories": {
