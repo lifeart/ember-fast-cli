@@ -6,7 +6,9 @@ const lookupCommand = require("ember-cli/lib/cli/lookup-command");
 const serveURL = require('ember-cli/lib/utilities/get-serve-url');
 const UI_PATCH_ID = 'PATCH_9cf61e15-5685-4308-8938-e5c991825bc6';
 const path = require("path");
+const fs = require('fs');
 const express = require("express");
+const fetch = require('node-fetch');
 async function executeCommand(cli, commandName, commandArgs) {
   try {
     const command = makeCommand(cli, commandName, commandArgs);
@@ -65,8 +67,39 @@ const methodsToPatch = [
   'writeWarnLine'
 ];
 
+function postData(url = '/', data = {}) {
+  return fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json;charset=utf-8'
+    },
+    body: JSON.stringify({data})
+  })
+  .then(response => response.json());
+}
+
 module.exports = {
   name: require("./package").name,
+  // ember-language-server inegraion
+  onInit(_, project) {
+    // eslint-disable-next-line no-unused-vars
+    project.executors['els.executeInEmberCLI'] = async (_,__, [cmd] ) => {
+      try {
+        let cliMetaFileName = path.join(__dirname, 'meta.json');
+        if (!fs.existsSync(cliMetaFileName)) {
+          return;
+        }
+        let meta = JSON.parse(fs.readFileSync(cliMetaFileName, 'utf8'));
+        if (meta && meta.endpoint) {
+          await postData(meta.endpoint, (cmd||'').replace('ember ','').trim().split(' ').map(e=>e.trim()).filter(e=>e.length));
+          // meta
+        }
+      } catch(e) {
+        // 
+      }
+    }
+    //  fs.writeFileSync(path.join(__dirname, 'meta.json'), JSON.stringify({endpoint}), 'utif');
+  },
   serverMiddleware(config) {
     let app = config.app;
     app.use(express.json());
@@ -93,8 +126,11 @@ module.exports = {
       });
     });
 
+    let endpoint = `${serveURL(config.options, config.options.project)}cli`;
+
+    fs.writeFileSync(path.join(__dirname, 'meta.json'), JSON.stringify({endpoint}), 'utif');
     this.ui.writeLine('');
-    this.ui.writeLine(`[ember-fast-cli] Serving on: ${serveURL(config.options, config.options.project)}cli`);
+    this.ui.writeLine(`[ember-fast-cli] Serving on: ${endpoint}`);
     this.ui.writeLine('');
 
     if (UI_PATCH_ID in this.ui) {

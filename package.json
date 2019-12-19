@@ -17,6 +17,9 @@
     "doc": "doc",
     "test": "tests"
   },
+  "ember-language-server": {
+    "entry": "./index"
+  },
   "scripts": {
     "build": "ember build",
     "lint:hbs": "ember-template-lint .",
@@ -27,11 +30,12 @@
     "postinstall": "patch-package"
   },
   "dependencies": {
-    "patch-package": "^6.2.0",
-    "xterm": "^4.3.0",
-    "express": "*",
     "ember-cli-babel": "*",
-    "ember-cli-htmlbars": "*"
+    "ember-cli-htmlbars": "*",
+    "express": "*",
+    "node-fetch": "^2.6.0",
+    "patch-package": "^6.2.0",
+    "xterm": "^4.3.0"
   },
   "devDependencies": {
     "@ember/optional-features": "^1.0.0",
