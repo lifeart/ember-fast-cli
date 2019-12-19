@@ -11,16 +11,49 @@
                 background-color: #000;
                 margin: 20px;
             }
+			#terminal {
+				height: 100vh;
+			}
         </style>
       <div id="terminal"></div>
       <script>
-        var term = new Terminal();
-        term.open(document.getElementById('terminal'));
-        term.write('ember-cli: ');
+		function writeLine(txt) {
+			term.write('\r\n' + txt);
+		}
+        var term = new Terminal({fontSize: '24', fontWeight: 'bold'});
+		term.open(document.getElementById('terminal'));
+		const colors = {
+			red: 31,
+			green: 32,
+			yellow: 33,
+			blue: 34,
+			magenta: 35,
+			cyan: 36,
+			white: 37,
+			reset: 0
+		}
+		function color(name, text) {
+			return `\x1b[${colors[name]}m${text}\x1b[0m`;
+		} 
+		function entryStr() {
+			return color('yellow', 'ember-cli: ');
+		}
+		term.write(entryStr());
         let cmd = '';
         term.prompt = async () => {
-            await postData('/cli', cmd.replace('ember ','').trim().split(' ').map(e=>e.trim()).filter(e=>e.length));
-            term.write('\r\nember-cli: ');
+			if (cmd === '') {
+				return;
+			}
+			if (cmd === 'clear') {
+				term.reset();
+				cmd = '';
+				term.write(entryStr());
+				return;
+			}
+			let time = performance.now();
+			await postData('/cli', cmd.replace('ember ','').trim().split(' ').map(e=>e.trim()).filter(e=>e.length));
+			writeLine(color('green',`// executed in ${(performance.now()-time).toFixed(3)}ms`));
+			writeLine(entryStr());
             cmd = '';
         };
         term.onKey((e) => {
@@ -31,19 +64,32 @@
                 term.prompt();
             } else if (ev.keyCode === 8) {
             // Do not delete the prompt
-                if (term._core.buffer.x > 2) {
+                if (term._core.buffer.x > 2 && cmd.length) {
                     term.write('\b \b');
                     cmd = cmd.slice(0,-1);
                 }
             } else if (printable) {
-                term.write(e.key);
-                cmd = `${cmd}${e.key}`;
+				if (cmd === '' && e.key === 'e') {
+					term.write('ember ');
+					cmd = 'ember ';
+					return;
+				}
+				if (e.key === 'g' && (cmd === '' || cmd === 'ember ')) {
+					term.write(e.key + ' ');
+					cmd = `${cmd}${e.key} `;
+					return;
+				}
+				if (e.key === 'd' && (cmd === '' || cmd === 'ember ')) {
+					term.write(e.key + ' ');
+					cmd = `${cmd}${e.key} `;
+					return;
+				}
+				cmd = `${cmd}${e.key}`;
+				term.write(e.key);
             }
         });
 
-
-
-
+		term.focus();
         function postData(url = '/', data = {}) {
 			return fetch(url, {
 				method: 'POST',
