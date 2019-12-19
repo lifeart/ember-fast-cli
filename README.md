@@ -66,6 +66,9 @@ type: `ember g component foo-bar` + Enter
 
 Check files! Repeat if you enjoying it. Star if you like it! :)
 
+
+Also, `ember-fast-cli` working with [Unstable Ember Language Server](https://marketplace.visualstudio.com/items?itemName=lifeart.vscode-ember-unstable), and allow developers to execute `ember-cli` commands from `vscode` command interface. Open `vscode` command line and search for `Ember`.
+
 Contributing
 ------------------------------------------------------------------------------
 
