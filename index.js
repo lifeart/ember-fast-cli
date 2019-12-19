@@ -4,7 +4,7 @@
 const lookupCommand = require("ember-cli/lib/cli/lookup-command");
 // eslint-disable-next-line node/no-unpublished-require
 const serveURL = require('ember-cli/lib/utilities/get-serve-url');
-
+const UI_PATCH_ID = 'PATCH_9cf61e15-5685-4308-8938-e5c991825bc6';
 const path = require("path");
 const express = require("express");
 async function executeCommand(cli, commandName, commandArgs) {
@@ -13,7 +13,7 @@ async function executeCommand(cli, commandName, commandArgs) {
     await runCommand(command, commandArgs);
   } catch (e) {
     // eslint-disable-next-line no-console
-    console.log(e, e);
+    console.log(e);
   }
 }
 async function runCommand(command, commandArgs) {
@@ -22,7 +22,7 @@ async function runCommand(command, commandArgs) {
     await command.validateAndRun(commandArgs);
   } catch (e) {
     // eslint-disable-next-line no-console
-    console.log("e", e);
+    console.log(e);
   }
 }
 function makeCommand(cli, commandName, commandArgs) {
@@ -52,6 +52,19 @@ function makeCommand(cli, commandName, commandArgs) {
 const xtermPath = path.dirname(path.dirname(require.resolve("xterm")));
 let capturing = false;
 let results = [];
+
+const methodsToPatch = [
+  // 'write',
+  'writeError',
+  // 'prependLine',
+  'writeDeprecateLine',
+  'writeLine', 
+  'writeErrorLine', 
+  'writeDebugLine', 
+  'writeInfoLine', 
+  'writeWarnLine'
+];
+
 module.exports = {
   name: require("./package").name,
   serverMiddleware(config) {
@@ -71,6 +84,9 @@ module.exports = {
       capturing = true;
       const [command, ...commandArgs] = req.body.data;
       executeCommand(this.parent.cli, command, commandArgs).then(() => {
+        if (results.length === 0) {
+          results.push('No output, likely the specified command '+command+' is invalid. For available options, see `ember help`.');
+        }
         res.json(results);
         results = [];
         capturing = false;
@@ -81,17 +97,19 @@ module.exports = {
     this.ui.writeLine(`[ember-fast-cli] Serving on: ${serveURL(config.options, config.options.project)}cli`);
     this.ui.writeLine('');
 
-    if (this.ui.writeLine.patched) {
+    if (UI_PATCH_ID in this.ui) {
       return;
     }
-    let wl = this.ui.writeLine;
-    this.ui.writeLine = (...args) => {
-      if (capturing) {
-        results.push(args[0]);
+    methodsToPatch.forEach((methodName)=>{
+      let originalImplementation = this.ui[methodName];
+      this.ui[methodName] = (...args) => {
+        if (capturing) {
+          results.push(args[0]);
+        }
+        originalImplementation.apply(this.ui, args);
       }
-      wl.apply(this.ui, args);
-    }
-    this.ui.writeLine.patched = true;
+    });
+    this.ui[UI_PATCH_ID] = true;
   },
 
   isEnabled() {
