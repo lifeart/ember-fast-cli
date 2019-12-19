@@ -1,6 +1,10 @@
 "use strict";
 
+// eslint-disable-next-line node/no-unpublished-require
 const lookupCommand = require("ember-cli/lib/cli/lookup-command");
+// eslint-disable-next-line node/no-unpublished-require
+const serveURL = require('ember-cli/lib/utilities/get-serve-url');
+
 const path = require("path");
 const express = require("express");
 async function executeCommand(cli, commandName, commandArgs) {
@@ -69,6 +73,10 @@ module.exports = {
         res.json([command, ...commandArgs]);
       });
     });
+
+    this.ui.writeLine('');
+    this.ui.writeLine(`[ember-fast-cli] Serving on: ${serveURL(config.options, config.options.project)}cli`);
+    this.ui.writeLine('');
   },
 
   isEnabled() {
