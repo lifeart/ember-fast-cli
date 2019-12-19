@@ -45,16 +45,15 @@
 
 
         function postData(url = '/', data = {}) {
-  // Значения по умолчанию обозначены знаком *
-    return fetch(url, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json;charset=utf-8'
-        },
-        body: JSON.stringify({data}), // тип данных в body должен соответвовать значению заголовка "Content-Type"
-    })
-    .then(response => response.json()); // парсит JSON ответ в Javascript объект
-}
+			return fetch(url, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json;charset=utf-8'
+				},
+				body: JSON.stringify({data})
+			})
+			.then(response => response.json());
+		}
       </script>
     </body>
   </html>
