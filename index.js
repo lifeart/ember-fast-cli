@@ -18,9 +18,8 @@ async function executeCommand(cli, commandName, commandArgs) {
 }
 async function runCommand(command, commandArgs) {
   try {
-    let a = await command.beforeRun(commandArgs);
-    let b = await command.validateAndRun(commandArgs);
-    debugger;
+    await command.beforeRun(commandArgs);
+    await command.validateAndRun(commandArgs);
   } catch (e) {
     // eslint-disable-next-line no-console
     console.log("e", e);
