@@ -51,8 +51,11 @@
 				return;
 			}
 			let time = performance.now();
-			await postData('/cli', cmd.replace('ember ','').trim().split(' ').map(e=>e.trim()).filter(e=>e.length));
-			writeLine(color('green',`// executed in ${(performance.now()-time).toFixed(3)}ms`));
+			let results = await postData('/cli', cmd.replace('ember ','').trim().split(' ').map(e=>e.trim()).filter(e=>e.length));
+            results.forEach((el)=>{
+                writeLine(el);
+            });
+            writeLine(color('blue',`// executed in ${(performance.now()-time).toFixed(3)}ms`));
 			writeLine(entryStr());
             cmd = '';
         };

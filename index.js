@@ -18,8 +18,9 @@ async function executeCommand(cli, commandName, commandArgs) {
 }
 async function runCommand(command, commandArgs) {
   try {
-    await command.beforeRun(commandArgs);
-    await command.validateAndRun(commandArgs);
+    let a = await command.beforeRun(commandArgs);
+    let b = await command.validateAndRun(commandArgs);
+    debugger;
   } catch (e) {
     // eslint-disable-next-line no-console
     console.log("e", e);
@@ -46,12 +47,12 @@ function makeCommand(cli, commandName, commandArgs) {
     testing: cli.testing,
     cli: cli
   });
-
   return command;
 }
 
 const xtermPath = path.dirname(path.dirname(require.resolve("xterm")));
-
+let capturing = false;
+let results = [];
 module.exports = {
   name: require("./package").name,
   serverMiddleware(config) {
@@ -68,15 +69,30 @@ module.exports = {
     });
 
     app.post("/cli", (req, res) => {
+      capturing = true;
       const [command, ...commandArgs] = req.body.data;
       executeCommand(this.parent.cli, command, commandArgs).then(() => {
-        res.json([command, ...commandArgs]);
+        res.json(results);
+        results = [];
+        capturing = false;
       });
     });
 
     this.ui.writeLine('');
     this.ui.writeLine(`[ember-fast-cli] Serving on: ${serveURL(config.options, config.options.project)}cli`);
     this.ui.writeLine('');
+
+    if (this.ui.writeLine.patched) {
+      return;
+    }
+    let wl = this.ui.writeLine;
+    this.ui.writeLine = (...args) => {
+      if (capturing) {
+        results.push(args[0]);
+      }
+      wl.apply(this.ui, args);
+    }
+    this.ui.writeLine.patched = true;
   },
 
   isEnabled() {

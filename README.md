@@ -10,6 +10,10 @@ It may take up to `5-20s` to generate component using `ember g component foo-bar
 But, if we will execute commands on already started cli (development server, running by `ember s`), we can get __500x__ boost on `cli` performance, for my case component generation time reduced from `10s` to `0.2s`.
 
 
+![terminal](previews/terminal.png)
+
+
+
 Compatibility
 ------------------------------------------------------------------------------
 
