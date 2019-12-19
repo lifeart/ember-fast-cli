@@ -37,7 +37,7 @@ edit `node_modules/ember-cli/lib/cli/index.js` and add one line
 cli.env = environment; // <-- we need to add this line
 ```
 
-here: 
+[here:](https://github.com/ember-cli/ember-cli/blob/7d80dbf3a28f23044c1c7544db6f7ca3792185a3/lib/cli/index.js#L145)
 
 
 ```js
