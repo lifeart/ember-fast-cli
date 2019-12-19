@@ -36,14 +36,12 @@ edit `node_modules/ember-cli/lib/cli/index.js`
     settings: merge(defaultUpdateCheckerOptions, config.getAll()),
   };
 
-  cli.env = environment; // <-- we need this line
+  cli.env = environment; // <-- we need to add this line
 
   return cli.run(environment).finally(() => willInterruptProcess.release());
 ```
 
-run `ember s`
-
-visit: `http://localhost:4400/` 
+After you have started your development server using ember serve, this addon adds a custom middleware listening to `/cli`. So just open `http://localhost:4200/cli` in your web browser to access cli.
 
 type: `ember g component foo-bar` + Enter
 

@@ -1,8 +1,8 @@
 <!doctype html>
   <html>
     <head>
-      <link rel="stylesheet" href="/xterm.css" />
-      <script src="/xterm.js"></script>
+      <link rel="stylesheet" href="/cli/xterm.css" />
+      <script src="/cli/xterm.js"></script>
     </head>
     <body>
         <style>
@@ -19,7 +19,7 @@
         term.write('ember-cli: ');
         let cmd = '';
         term.prompt = async () => {
-            await postData('/', cmd.replace('ember ','').trim().split(' ').map(e=>e.trim()).filter(e=>e.length));
+            await postData('/cli', cmd.replace('ember ','').trim().split(' ').map(e=>e.trim()).filter(e=>e.length));
             term.write('\r\nember-cli: ');
             cmd = '';
         };
