@@ -1,9 +1,11 @@
 {
   "name": "ember-fast-cli",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Super fast web-cli for ember-cli",
   "keywords": [
-    "ember-addon", "ember-cli", "cli"
+    "ember-addon",
+    "ember-cli",
+    "cli"
   ],
   "repository": {
     "type": "git",
