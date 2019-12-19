@@ -1,7 +1,13 @@
 ember-fast-cli
 ==============================================================================
 
-This addon allow execute cli commands on running ember-cli.
+This addon allow execute cli commands on running `ember-cli` instance.
+
+`ember-cli` commands execution relatively slow, because we need to "revalidate" all dependencies on each command execution (we have too boot full `cli` to execute any blueprint.
+
+It may take up to `5-20s` to generate component using `ember g component foo-bar`.
+
+But, if we will execute commands on already started cli (development server, running by `ember s`), we can get 500x boost on `cli` performance, for my case component generation time reduced from `5s` to `0.2s`.
 
 
 Compatibility
@@ -41,10 +47,10 @@ edit `node_modules/ember-cli/lib/cli/index.js`
   return cli.run(environment).finally(() => willInterruptProcess.release());
 ```
 
-After you have started your development server using ember serve, this addon adds a custom middleware listening to `/cli`. So just open `http://localhost:4200/cli` in your web browser to access cli.
+After you have started your development server using `ember serve`, this addon adds a custom middleware listening to `/cli`. 
+So just open [http://localhost:4200/cli](http://localhost:4200/cli) in your web browser to access `fast-cli`.
 
 type: `ember g component foo-bar` + Enter
-
 
 check files!
 
