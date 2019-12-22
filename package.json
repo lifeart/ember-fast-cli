@@ -68,6 +68,6 @@
   },
   "ember-addon": {
     "configPath": "tests/dummy/config",
-    "before": "proxy-server-middleware"
+    "before": "history-support-middleware"
   }
 }
