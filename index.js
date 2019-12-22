@@ -112,59 +112,64 @@ module.exports = {
     };
   },
   serverMiddleware(config) {
-    let app = config.app;
-    app.use(express.json());
-    app.get("/cli", (_, res) => {
-      res.sendFile(path.join(__dirname, "lib", "index.html"));
-    });
-    app.get("/cli/xterm.js", (_, res) => {
-      res.sendFile(path.join(xtermPath, "lib", "xterm.js"));
-    });
-    app.get("/cli/xterm.css", (_, res) => {
-      res.sendFile(path.join(xtermPath, "css", "xterm.css"));
-    });
-
-    app.post("/cli", (req, res) => {
-      capturing = true;
-      const [command, ...commandArgs] = req.body.data;
-      executeCommand(this.parent.cli, command, commandArgs).then(() => {
-        if (results.length === 0) {
-          results.push(
-            "No output, likely the specified command " +
-              command +
-              " is invalid. For available options, see `ember help`."
-          );
-        }
-        res.json(results);
-        results = [];
-        capturing = false;
+    if (!config.options.proxy) {
+      console.log('\x1b[42m%s\x1b[0m', 'ember-fast-cli initialized!');
+      let app = config.app;
+      app.use(express.json());
+      app.get("/cli", (_, res) => {
+        res.sendFile(path.join(__dirname, "lib", "index.html"));
       });
-    });
+      app.get("/cli/xterm.js", (_, res) => {
+        res.sendFile(path.join(xtermPath, "lib", "xterm.js"));
+      });
+      app.get("/cli/xterm.css", (_, res) => {
+        res.sendFile(path.join(xtermPath, "css", "xterm.css"));
+      });
 
-    let endpoint = `${serveURL(config.options, config.options.project)}cli`;
+      app.post("/cli", (req, res) => {
+        capturing = true;
+        const [command, ...commandArgs] = req.body.data;
+        executeCommand(this.parent.cli, command, commandArgs).then(() => {
+          if (results.length === 0) {
+            results.push(
+              "No output, likely the specified command " +
+                command +
+                " is invalid. For available options, see `ember help`."
+            );
+          }
+          res.json(results);
+          results = [];
+          capturing = false;
+        });
+      });
 
-    fs.writeFileSync(
-      path.join(__dirname, "meta.json"),
-      JSON.stringify({ endpoint }),
-      "utf8"
-    );
-    this.ui.writeLine("");
-    this.ui.writeLine(`[ember-fast-cli] Serving on: ${endpoint}`);
-    this.ui.writeLine("");
+      let endpoint = `${serveURL(config.options, config.options.project)}cli`;
 
-    if (UI_PATCH_ID in this.ui) {
-      return;
+      fs.writeFileSync(
+        path.join(__dirname, "meta.json"),
+        JSON.stringify({ endpoint }),
+        "utf8"
+      );
+      this.ui.writeLine("");
+      this.ui.writeLine(`[ember-fast-cli] Serving on: ${endpoint}`);
+      this.ui.writeLine("");
+
+      if (UI_PATCH_ID in this.ui) {
+        return;
+      }
+      methodsToPatch.forEach(methodName => {
+        let originalImplementation = this.ui[methodName];
+        this.ui[methodName] = (...args) => {
+          if (capturing) {
+            results.push(args[0]);
+          }
+          originalImplementation.apply(this.ui, args);
+        };
+      });
+      this.ui[UI_PATCH_ID] = true;
+    } else {
+      console.warn('\x1b[43m%s\x1b[0m', 'ember-fast-cli disabled, because --proxy option enabled!');
     }
-    methodsToPatch.forEach(methodName => {
-      let originalImplementation = this.ui[methodName];
-      this.ui[methodName] = (...args) => {
-        if (capturing) {
-          results.push(args[0]);
-        }
-        originalImplementation.apply(this.ui, args);
-      };
-    });
-    this.ui[UI_PATCH_ID] = true;
   },
 
   isEnabled() {
