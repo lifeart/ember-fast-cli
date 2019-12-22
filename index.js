@@ -112,6 +112,10 @@ module.exports = {
     };
   },
   serverMiddleware(config) {
+    if (config.options.proxy) {
+      this.ui.writeInfoLine('ember-fast-cli disabled, because --proxy option enabled!');
+      return;
+    }
     let app = config.app;
     app.use(express.json());
     app.get("/cli", (_, res) => {
