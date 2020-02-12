@@ -34,7 +34,7 @@ Usage
 ------------------------------------------------------------------------------
 
 <details>
-  <summary>How to run addon with ember-cli < 3.16.0</summary>
+  <summary>How to run addon with `ember-cli < 3.16.0`</summary>
   
 edit `node_modules/ember-cli/lib/cli/index.js` and add one line
 
