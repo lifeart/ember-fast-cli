@@ -128,9 +128,12 @@ module.exports = {
       this.ui.writeInfoLine('"ember-fast-cli" disabled, because --proxy option enabled!');
       return;
     }
-    if (maybeWarnEmberCliError(this.parent.cli)) {
-      return;
+    if (!('maybeMakeCommand' in this.parent.cli)) {
+      if (maybeWarnEmberCliError(this.parent.cli)) {
+        return;
+      }    
     }
+
     let app = config.app;
     app.use(express.json());
     app.get("/cli", (_, res) => {
