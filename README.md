@@ -33,8 +33,9 @@ ember install ember-fast-cli
 Usage
 ------------------------------------------------------------------------------
 
-install addon into your porject.
-
+<details>
+  <summary>How to run addon with ember-cli < 3.16.0</summary>
+  
 edit `node_modules/ember-cli/lib/cli/index.js` and add one line
 
 ```js
@@ -58,11 +59,16 @@ cli.env = environment; // <-- we need to add this line
   return cli.run(environment).finally(() => willInterruptProcess.release());
 ```
 
-After you have started your development server using `ember serve`, this addon adds a custom middleware listening to `/cli`. 
+</details>
+
+
+
+
+After you have started your development server using `ember serve`, this addon adds a custom middleware listening to `/cli` endpoint. 
 
 So just open [http://localhost:4200/cli](http://localhost:4200/cli) in your web browser to access `fast-cli`.
 
-type: `ember g component foo-bar` + Enter
+type: `g component foo-bar` + Enter
 
 Check files! Repeat if you enjoying it. Star if you like it! :)
 

@@ -17,11 +17,11 @@
         </style>
       <div id="terminal"></div>
       <script>
-		function writeLine(txt) {
-			term.write('\r\n' + txt);
-		}
-        var term = new Terminal({fontSize: '20', fontWeight: 'bold'});
-		term.open(document.getElementById('terminal'));
+		document.addEventListener("DOMContentLoaded", function() { 
+			initTerminal();
+		});
+		let cmd = '';
+		const fontSize = 20;
 		const colors = {
 			red: 31,
 			green: 32,
@@ -32,14 +32,32 @@
 			white: 37,
 			reset: 0
 		}
+	
 		function color(name, text) {
 			return `\x1b[${colors[name]}m${text}\x1b[0m`;
 		} 
 		function entryStr() {
 			return color('yellow', 'ember-cli: ');
 		}
+
+		function wiewport() {
+			return {
+				rows:  Math.round(window.innerHeight / (fontSize * 1.25)),
+				cols: Math.round(window.innerWidth / fontSize),
+			}
+		}
+		function initTerminal() {
+			
+        var term = new Terminal({fontSize: fontSize, fontWeight: 'bold', rows: wiewport().rows, cols: wiewport().cols });
+		
+		function writeLine(txt) {
+			term.write('\r\n' + txt);
+		}
+
+		term.open(document.getElementById('terminal'));
+	
 		term.write(entryStr());
-        let cmd = '';
+        
         term.prompt = async () => {
 			if (cmd === '') {
 				return;
@@ -51,18 +69,43 @@
 				return;
 			}
 			let time = performance.now();
-			let results = await postData('/cli', cmd.replace('ember ','').trim().split(' ').map(e=>e.trim()).filter(e=>e.length));
-            results.forEach((el)=>{
-                writeLine(el);
-            });
-            writeLine(color('blue',`// executed in ${(performance.now()-time).toFixed(3)}ms`));
+			let silentError = 'SilentError: ';
+			try {
+				let results = await postData('/cli', cmd.replace('ember ','').trim().split(' ').map(e=>e.trim()).filter(e=>e.length));
+				results.forEach((el)=>{
+					if (el.startsWith(silentError)) {
+						writeLine(color('red', el.replace(silentError, '')));
+					} else {
+						writeLine(el);
+					}
+				});
+				writeLine(color('blue',`// executed in ${(performance.now()-time).toFixed(3)}ms`));
+			} catch(e) {
+				writeLine(color('red', e.toString()));
+			}
+			
 			writeLine(entryStr());
             cmd = '';
-        };
+		};
+		term.attachCustomKeyEventHandler(function (e) {
+			// ctrl + r
+			if (e.ctrlKey && e.keyCode === 82 && e.type === 'keyup') {
+				window.location.reload();
+				return false;
+			}
+
+			// ctrl + v
+			if (e.ctrlKey && e.keyCode === 86 && e.type === 'keyup') {
+				navigator.clipboard.readText().then((result)=>{
+					term.write(result);
+					cmd = cmd + result;
+				});
+				return false;
+			}
+		});
         term.onKey((e) => {
             const ev = e.domEvent;
             const printable = !ev.altKey && !ev.ctrlKey && !ev.metaKey;
-
             if (ev.keyCode === 13) {
                 term.prompt();
             } else if (ev.keyCode === 8) {
@@ -72,27 +115,33 @@
                     cmd = cmd.slice(0,-1);
                 }
             } else if (printable) {
-				if (cmd === '' && e.key === 'e') {
-					term.write('ember ');
-					cmd = 'ember ';
-					return;
-				}
-				if (e.key === 'g' && (cmd === '' || cmd === 'ember ')) {
-					term.write(e.key + ' ');
-					cmd = `${cmd}${e.key} `;
-					return;
-				}
-				if (e.key === 'd' && (cmd === '' || cmd === 'ember ')) {
-					term.write(e.key + ' ');
-					cmd = `${cmd}${e.key} `;
-					return;
-				}
+				// if (cmd === '' && e.key === 'e') {
+				// 	term.write('ember ');
+				// 	cmd = 'ember ';
+				// 	return;
+				// }
+				// if (e.key === 'g' && (cmd === '' || cmd === 'ember ')) {
+				// 	term.write(e.key + ' ');
+				// 	cmd = `${cmd}${e.key} `;
+				// 	return;
+				// }
+				// if (e.key === 'd' && (cmd === '' || cmd === 'ember ')) {
+				// 	term.write(e.key + ' ');
+				// 	cmd = `${cmd}${e.key} `;
+				// 	return;
+				// }
 				cmd = `${cmd}${e.key}`;
 				term.write(e.key);
             }
         });
 
 		term.focus();
+			window.onresize = function() {
+				term.resize(wiewport().cols,wiewport().rows);
+			}
+		}
+		
+		
         function postData(url = '/', data = {}) {
 			return fetch(url, {
 				method: 'POST',

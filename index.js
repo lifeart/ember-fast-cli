@@ -9,25 +9,38 @@ const path = require("path");
 const fs = require("fs");
 const express = require("express");
 const fetch = require("node-fetch");
+let capturing = false;
+let results = [];
 async function executeCommand(cli, commandName, commandArgs) {
+  capturing = true;
   try {
     const command = makeCommand(cli, commandName, commandArgs);
     await runCommand(command, commandArgs);
+    capturing = false;
   } catch (e) {
-    // eslint-disable-next-line no-console
-    console.log(e);
+    results.push(e.toString());
+    capturing = false;
   }
 }
 async function runCommand(command, commandArgs) {
-  try {
-    await command.beforeRun(commandArgs);
-    await command.validateAndRun(commandArgs);
-  } catch (e) {
-    // eslint-disable-next-line no-console
-    console.log(e);
+  await command.beforeRun(commandArgs);
+  await command.validateAndRun(commandArgs);
+}
+function maybeWarnEmberCliError(cli) {
+  if (!('env' in cli)) {
+    cli.ui.writeWarnLine(`ember-fast-cli: unable to connect to ember-cli (no environment), check addon readme.`);
+    return true;
+  } else {
+    return false;
   }
 }
 function makeCommand(cli, commandName, commandArgs) {
+  if ('maybeMakeCommand' in cli) {
+    return cli.maybeMakeCommand(commandName, commandArgs);
+  }
+  if (maybeWarnEmberCliError(cli)) {
+    return;
+  }
   let CurrentCommand = lookupCommand(
     cli.env.commands,
     commandName,
@@ -52,8 +65,7 @@ function makeCommand(cli, commandName, commandArgs) {
 }
 
 const xtermPath = path.dirname(path.dirname(require.resolve("xterm")));
-let capturing = false;
-let results = [];
+
 
 const methodsToPatch = [
   // 'write',
@@ -113,7 +125,10 @@ module.exports = {
   },
   serverMiddleware(config) {
     if (config.options.proxy) {
-      this.ui.writeInfoLine('ember-fast-cli disabled, because --proxy option enabled!');
+      this.ui.writeInfoLine('"ember-fast-cli" disabled, because --proxy option enabled!');
+      return;
+    }
+    if (maybeWarnEmberCliError(this.parent.cli)) {
       return;
     }
     let app = config.app;
@@ -129,7 +144,7 @@ module.exports = {
     });
 
     app.post("/cli", (req, res) => {
-      capturing = true;
+      
       const [command, ...commandArgs] = req.body.data;
       executeCommand(this.parent.cli, command, commandArgs).then(() => {
         if (results.length === 0) {
@@ -141,7 +156,7 @@ module.exports = {
         }
         res.json(results);
         results = [];
-        capturing = false;
+        
       });
     });
 
@@ -159,6 +174,14 @@ module.exports = {
     if (UI_PATCH_ID in this.ui) {
       return;
     }
+    /* eslint-disable no-console */
+    const originalLog = console.log;
+    console.log = (...args) => {
+      if (capturing) {
+        results.push(args[0]);
+      }
+      originalLog.apply(console, args);
+    }
     methodsToPatch.forEach(methodName => {
       let originalImplementation = this.ui[methodName];
       this.ui[methodName] = (...args) => {
@@ -170,7 +193,6 @@ module.exports = {
     });
     this.ui[UI_PATCH_ID] = true;
   },
-
   isEnabled() {
     return true;
   }
