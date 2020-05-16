@@ -124,14 +124,10 @@ module.exports = {
     };
   },
   serverMiddleware(config) {
-    if (config.options.proxy) {
-      this.ui.writeInfoLine('"ember-fast-cli" disabled, because --proxy option enabled!');
-      return;
-    }
     if (!('maybeMakeCommand' in this.parent.cli)) {
       if (maybeWarnEmberCliError(this.parent.cli)) {
         return;
-      }    
+      }
     }
 
     let app = config.app;
@@ -147,7 +143,7 @@ module.exports = {
     });
 
     app.post("/cli", (req, res) => {
-      
+
       const [command, ...commandArgs] = req.body.data;
       executeCommand(this.parent.cli, command, commandArgs).then(() => {
         if (results.length === 0) {
@@ -159,7 +155,7 @@ module.exports = {
         }
         res.json(results);
         results = [];
-        
+
       });
     });
 
