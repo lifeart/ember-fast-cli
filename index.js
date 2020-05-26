@@ -2,8 +2,11 @@
 
 // eslint-disable-next-line node/no-unpublished-require
 const lookupCommand = require("ember-cli/lib/cli/lookup-command");
-// eslint-disable-next-line node/no-unpublished-require
-const serveURL = require("ember-cli/lib/utilities/get-serve-url");
+
+function getServeURL(options) {
+  return `http${options.ssl ? 's' : ''}://${options.host || 'localhost'}:${options.port}/cli`;
+}
+
 const UI_PATCH_ID = "PATCH_9cf61e15-5685-4308-8938-e5c991825bc6";
 const path = require("path");
 const fs = require("fs");
@@ -159,7 +162,7 @@ module.exports = {
       });
     });
 
-    let endpoint = `${serveURL(config.options, config.options.project)}cli`;
+    let endpoint = getServeURL(config.options);
 
     fs.writeFileSync(
       path.join(__dirname, "meta.json"),
