@@ -193,6 +193,14 @@ module.exports = {
         originalImplementation.apply(this.ui, args);
       };
     });
+    const originalPrompt = this.ui.prompt;
+    this.ui.prompt = (...args) => {
+      if (capturing) {
+        return Promise.resolve({answer: 'skip'});
+      }
+
+      return originalPrompt.apply(this.ui, args);
+    };
     this.ui[UI_PATCH_ID] = true;
   },
   isEnabled() {
