@@ -4,7 +4,9 @@
 const lookupCommand = require("ember-cli/lib/cli/lookup-command");
 
 function getServeURL(options) {
-  return `http${options.ssl ? 's' : ''}://${options.host || 'localhost'}:${options.port}/cli`;
+  return `http${options.ssl ? "s" : ""}://${options.host || "localhost"}:${
+    options.port
+  }/cli`;
 }
 
 const UI_PATCH_ID = "PATCH_9cf61e15-5685-4308-8938-e5c991825bc6";
@@ -30,15 +32,17 @@ async function runCommand(command, commandArgs) {
   await command.validateAndRun(commandArgs);
 }
 function maybeWarnEmberCliError(cli) {
-  if (!('env' in cli)) {
-    cli.ui.writeWarnLine(`ember-fast-cli: unable to connect to ember-cli (no environment), check addon readme.`);
+  if (!("env" in cli)) {
+    cli.ui.writeWarnLine(
+      `ember-fast-cli: unable to connect to ember-cli (no environment), check addon readme.`
+    );
     return true;
   } else {
     return false;
   }
 }
 function makeCommand(cli, commandName, commandArgs) {
-  if ('maybeMakeCommand' in cli) {
+  if ("maybeMakeCommand" in cli) {
     return cli.maybeMakeCommand(commandName, commandArgs);
   }
   if (maybeWarnEmberCliError(cli)) {
@@ -50,7 +54,7 @@ function makeCommand(cli, commandName, commandArgs) {
     commandArgs,
     {
       project: cli.env.project,
-      ui: cli.ui
+      ui: cli.ui,
     }
   );
 
@@ -62,13 +66,12 @@ function makeCommand(cli, commandName, commandArgs) {
     project: cli.env.project,
     settings: cli.env.settings,
     testing: cli.testing,
-    cli: cli
+    cli: cli,
   });
   return command;
 }
 
 const xtermPath = path.dirname(path.dirname(require.resolve("xterm")));
-
 
 const methodsToPatch = [
   // 'write',
@@ -79,17 +82,17 @@ const methodsToPatch = [
   "writeErrorLine",
   "writeDebugLine",
   "writeInfoLine",
-  "writeWarnLine"
+  "writeWarnLine",
 ];
 
 function postData(url = "/", data = {}) {
   return fetch(url, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json;charset=utf-8"
+      "Content-Type": "application/json;charset=utf-8",
     },
-    body: JSON.stringify({ data })
-  }).then(response => response.json());
+    body: JSON.stringify({ data }),
+  }).then((response) => response.json());
 }
 
 module.exports = {
@@ -114,8 +117,8 @@ module.exports = {
               .replace("ember ", "")
               .trim()
               .split(" ")
-              .map(e => e.trim())
-              .filter(e => e.length)
+              .map((e) => e.trim())
+              .filter((e) => e.length)
           );
           if (results.length) {
             server.connection.window.showInformationMessage(results[0]);
@@ -127,7 +130,7 @@ module.exports = {
     };
   },
   serverMiddleware(config) {
-    if (!('maybeMakeCommand' in this.parent.cli)) {
+    if (!("maybeMakeCommand" in this.parent.cli)) {
       if (maybeWarnEmberCliError(this.parent.cli)) {
         return;
       }
@@ -146,7 +149,6 @@ module.exports = {
     });
 
     app.post("/cli", (req, res) => {
-
       const [command, ...commandArgs] = req.body.data;
       executeCommand(this.parent.cli, command, commandArgs).then(() => {
         if (results.length === 0) {
@@ -158,7 +160,6 @@ module.exports = {
         }
         res.json(results);
         results = [];
-
       });
     });
 
@@ -183,8 +184,8 @@ module.exports = {
         results.push(args[0]);
       }
       originalLog.apply(console, args);
-    }
-    methodsToPatch.forEach(methodName => {
+    };
+    methodsToPatch.forEach((methodName) => {
       let originalImplementation = this.ui[methodName];
       this.ui[methodName] = (...args) => {
         if (capturing) {
@@ -196,14 +197,27 @@ module.exports = {
     const originalPrompt = this.ui.prompt;
     this.ui.prompt = (...args) => {
       if (capturing) {
-        return Promise.resolve({answer: 'skip'});
+        results.push(args[0].message);
+        const choices = args[0].choices || [];
+        const maybeSkipAnswer = choices.find(({ value }) => value === "skip");
+        if (maybeSkipAnswer) {
+          results.push("Answer: " + maybeSkipAnswer.name);
+          return Promise.resolve({ answer: maybeSkipAnswer.value });
+        }
+        const maybeNoAnswer = choices.find(
+          ({ key }) => key.toLowerCase() === "n"
+        );
+        if (maybeNoAnswer) {
+          results.push("Answer: " + maybeSkipAnswer.name);
+          return Promise.resolve({ answer: maybeSkipAnswer.value });
+        }
+        return Promise.reject("Ember Fast CLi: Unable to answer.");
       }
-
       return originalPrompt.apply(this.ui, args);
     };
     this.ui[UI_PATCH_ID] = true;
   },
   isEnabled() {
     return true;
-  }
+  },
 };
