@@ -137,7 +137,6 @@ module.exports = {
     }
 
     let app = config.app;
-    app.use(express.json());
     app.get("/cli", (_, res) => {
       res.sendFile(path.join(__dirname, "lib", "index.html"));
     });
@@ -147,7 +146,7 @@ module.exports = {
     app.get("/cli/xterm.css", (_, res) => {
       res.sendFile(path.join(xtermPath, "css", "xterm.css"));
     });
-
+    app.use("/cli",  express.json());
     app.post("/cli", (req, res) => {
       const [command, ...commandArgs] = req.body.data;
       executeCommand(this.parent.cli, command, commandArgs).then(() => {
