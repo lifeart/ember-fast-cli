@@ -14,6 +14,10 @@ const path = require("path");
 const fs = require("fs");
 const express = require("express");
 const fetch = require("node-fetch");
+const https = require('https');
+
+const httpsAgent = new https.Agent({ rejectUnauthorized: false });
+
 let capturing = false;
 let results = [];
 async function executeCommand(cli, commandName, commandArgs) {
@@ -92,6 +96,7 @@ function postData(url = "/", data = {}) {
       "Content-Type": "application/json;charset=utf-8",
     },
     body: JSON.stringify({ data }),
+    agent: httpsAgent
   }).then((response) => response.json());
 }
 
